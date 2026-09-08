@@ -18,6 +18,43 @@ These instructions apply to the Omni Desktop repository.
 - Generated files, vendored code, build output, coverage output, dependency directories, lockfiles, and machine-produced snapshots are excluded from this cap. They must not be edited manually.
 - Run bash scripts/check-line-counts.sh before opening a pull request.
 
+## Documentation structure
+
+- New canonical documentation is written in English.
+- A canonical Markdown file targets 150 physical lines and must not exceed 200.
+- Every documentation directory contains at most five direct files, including its
+  `README.md`.
+- Split a document by responsibility and update the nearest index when it reaches the
+  preferred target. Do not solve the limit by hiding content in generated files.
+- Historical workshop material belongs under `docs/archive/`. Preserve it, do not extend
+  it during unrelated work, and do not treat it as the current contract.
+- Run `bash scripts/check-doc-structure.sh` together with the source line-count check.
+
+## Git workflow
+
+- Commit early and often. Every coherent milestone, vertical slice, or bounded documentation
+  tranche must end in a local commit once its relevant checks pass.
+- Keep commits small, cohesive, recoverable, and easy to review. Do not leave a completed
+  slice uncommitted merely because later corrections may follow.
+- Stage only the exact paths belonging to the slice and preserve unrelated work in the
+  checkout. Report the commit hash and validation evidence after each checkpoint.
+- Keep local commits, pushes, merges, releases, and external mutations as separate actions.
+  Push or merge only when explicitly requested; a local commit is the normal completion
+  step for an approved slice.
+
+## Visual reference contract
+
+- The canonical visual reference is `docs/design/canonical-ui-reference.md`.
+- The reference board export at
+  `docs/design/assets/form-boards/Omni Desktop - Planches.dc.html` is authoritative
+  for visual direction. Its co-located export support files must remain available when
+  rendering or comparing the board.
+- Before and after every UI change, compare the affected surface with the reference
+  board at the same viewport and theme. Report `PASS`, `FAIL`, or `NOT RUN` with the
+  surface, comparison performed, and reason for any exception or missing check.
+- Do not treat the reference board as permission to copy its branding, text, code,
+  assets, or product flows.
+
 ## Modules and functions
 
 - Give every module one clear responsibility.
