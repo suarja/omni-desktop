@@ -48,6 +48,47 @@ The first schema identifier is omni.plugin/v1. A manifest must declare its schem
       capabilities: string[]
     }
 
+    type ArtifactKind =
+      | "skill"
+      | "rule"
+      | "instruction"
+      | "agent"
+      | "command"
+      | "mcp-server"
+      | "hook"
+      | "configuration"
+      | "resource"
+
+    type ExecutionClass =
+      | "static"
+      | "model-invoked"
+      | "tool-using"
+      | "executable-hook"
+      | "mcp-server"
+
+    type InvocationPolicy =
+      | "automatic"
+      | "user-only"
+      | "provider-defined"
+
+    type PackageFormat =
+      | "omni-plugin"
+      | "agent-skill"
+      | "agent-plugin"
+      | "claude-plugin"
+      | "codex-plugin"
+      | "cursor-plugin"
+      | "opencode-plugin"
+      | "raw-directory"
+      | "npm-package"
+
+    type CatalogFormat =
+      | "claude-marketplace"
+      | "codex-marketplace"
+      | "cursor-marketplace"
+      | "opencode-http-skills"
+      | "none"
+
 ### Identity
 
 Plugin identity is stable within a source namespace:
@@ -98,14 +139,20 @@ Unknown licensing is an explicit state. Omni must not infer or silently assign a
 
     type ArtifactDeclaration = {
       id: ArtifactId
-      kind: "skill" | "instruction" | "configuration" | "resource"
+      kind: ArtifactKind
+      executionClass: ExecutionClass
+      invocationPolicy: InvocationPolicy
       relativePath: RelativePath
       contentHash: Hash
-      materialization: "copy"
+      materialization: "copy" | "host-managed" | "unsupported"
       optional: boolean
     }
 
-P0 supports static file materialization only. Executable hooks, lifecycle scripts, shell commands, package installation, and network callbacks are not valid P0 artifact materializations.
+P0 supports static file materialization only. Executable hooks, lifecycle scripts, shell
+commands, package installation, and network callbacks are not valid P0 artifact
+materializations. `host-managed` records a provider-owned install surface, such as a
+native Cursor Plugin cache, without giving Omni permission to mutate it. `unsupported`
+keeps the artifact visible while preventing a target plan.
 
 The artifact path is relative to the plugin package root. It must:
 
@@ -122,9 +169,10 @@ Configuration is a declared artifact kind, not a promise that every harness can 
 ### Compatibility declarations
 
     type CompatibilityDeclaration = {
-      harness: "codex" | "claude-code" | "opencode"
+      harness: "codex" | "claude-code" | "opencode" | "cursor"
       status: "native" | "mapped" | "unsupported" | "unknown"
       artifactIds: ArtifactId[]
+      packageFormats: PackageFormat[]
       capabilities: string[]
       notes: string | null
     }
@@ -138,6 +186,23 @@ Meaning:
 
 An assignment to an unsupported or unknown compatibility declaration fails during planning with an actionable result. The planner must not silently omit the artifact.
 
+## Package and catalogue are separate records
+
+An external catalogue entry points to a package. The two records must not be collapsed:
+
+- Claude, Codex, and Cursor use marketplace JSON to list packages.
+- OpenCode can use an HTTP `index.json` for skill files or package configuration for
+  executable plugins.
+- A package can contain many skills, as the Cursor `pstack` package demonstrates.
+- A child skill can carry provider-specific activation metadata without becoming a new
+  package.
+
+For example, Cursor's `pstack/skills/unslop/SKILL.md` is one static skill artifact inside
+the `pstack` Cursor Plugin. Its `disable-model-invocation: true` field normalizes to
+`invocationPolicy: "user-only"`, while the original frontmatter remains preserved as
+provider metadata. The plugin's agents, hooks, and other executable or tool-using
+components remain separate artifacts and are not copied by the P0 reconciler.
+
 ## Catalog normalization
 
 External sources may provide different names, layouts, version formats, or metadata. A source adapter produces:
@@ -145,9 +210,16 @@ External sources may provide different names, layouts, version formats, or metad
     type CatalogPluginRecord = {
       manifest: PluginManifestV1
       sourceId: SourceId
-      sourceRevision: string
+      provider: "codex" | "claude-code" | "opencode" | "cursor"
+      packageFormat: PackageFormat
+      catalogFormat: CatalogFormat
+      requestedRevision: string | null
+      resolvedRevision: string
       externalId: string
       sourcePath: RelativePath | null
+      rawManifestHash: Hash
+      packageContentHash: Hash
+      providerMetadata: Record<string, unknown>
       provenance: Provenance
       availability: "available" | "partial" | "invalid"
       warnings: CatalogWarning[]
@@ -156,7 +228,8 @@ External sources may provide different names, layouts, version formats, or metad
 Normalization rules:
 
 - preserve the original external identifier;
-- preserve the source revision used for the snapshot;
+- preserve both the requested revision and the resolved revision used for the snapshot;
+- preserve the provider, package format, and catalogue format;
 - preserve unknown fields as warnings or source metadata, not as guessed domain behavior;
 - reject path traversal and executable artifact declarations;
 - keep malformed records visible as invalid when safe to inspect;
@@ -170,6 +243,9 @@ A source adapter may support an external format without writing that format back
     type Provenance = {
       originSourceId: SourceId
       originExternalId: string
+      originProvider: "codex" | "claude-code" | "opencode" | "cursor"
+      originPackageFormat: PackageFormat
+      originCatalogFormat: CatalogFormat
       originRevision: string
       originVersion: Version
       originLicense: LicenseRef
@@ -195,10 +271,11 @@ A harness manifest describes what an adapter can detect and materialize. It is n
 
     type HarnessManifestV1 = {
       schema: "omni.harness/v1"
-      id: "codex" | "claude-code" | "opencode"
+      id: "codex" | "claude-code" | "opencode" | "cursor"
       displayName: string
-      supportedArtifactKinds: ("skill" | "instruction" | "configuration" | "resource")[]
+      supportedArtifactKinds: ArtifactKind[]
       supportedScopes: ("project" | "user")[]
+      supportedPackageFormats: PackageFormat[]
       capabilities: string[]
     }
 
@@ -264,6 +341,56 @@ The installation repository records the expected and observed hashes:
 
 Ownership is an Omni record, not an assumption based only on the file name. A missing ownership record means the file is unmanaged.
 
+## Provider-managed state and execution boundary
+
+`InstallationRecord` applies only to files that Omni owns and materializes in an approved
+project or user target root. Provider caches, package indexes, plugin activation, and
+hook registration are a different state boundary. Omni must observe and plan them, but
+the provider adapter owns their lifecycle.
+
+    type ProviderInstallationRecord = {
+      assignmentId: AssignmentId
+      harnessId: HarnessId
+      artifactId: ArtifactId | null
+      packageFormat: PackageFormat
+      scope: "project" | "user" | "host-managed"
+      requestedRevision: string | null
+      resolvedRevision: string | null
+      providerRef: string | null
+      packageState: "not-installed" | "current" | "outdated" | "drifted" | "blocked" | "unknown"
+      activationState: "not-applicable" | "inactive" | "active" | "unknown"
+    }
+
+    type ProviderAction = {
+      kind: "install" | "update" | "uninstall" | "activate" | "deactivate"
+      assignmentId: AssignmentId
+      harnessId: HarnessId
+      artifactId: ArtifactId | null
+      requiresApproval: true
+      rationale: string
+    }
+
+The provider-managed record is an observation, not a second source of truth. The Git
+revision or marketplace snapshot remains canonical. A cache reference is opaque provider
+state and must not be interpreted as a stable filesystem contract by the renderer.
+
+Provider adapter rules:
+
+- inspect provider caches, indexes, package versions, and activation state read-only;
+- expose missing, current, outdated, drifted, blocked, and unknown states;
+- produce provider-mediated actions for installation, update, uninstall, activation, or
+  deactivation;
+- require explicit approval before any provider action that can change installation or
+  runtime behavior;
+- never execute hooks, plugin JavaScript, shell commands, or MCP servers inside the
+  reconciler;
+- never delete or rewrite a provider-owned cache directly when a provider installer or
+  API exists.
+
+Hooks remain visible artifacts with `executionClass: "executable-hook"`. They can be
+included in a catalogue snapshot, compatibility report, and change plan. P0 may report
+that a hook needs provider activation, but it must not activate or run it automatically.
+
 ## Resolution flow
 
 The application services use the following sequence:
@@ -272,9 +399,10 @@ The application services use the following sequence:
       → load assignment
         → validate plugin compatibility
           → detect harness and target scope
-            → resolve bounded target paths
-              → compare installation records and observed hashes
-                → emit FileChange records
+            → inspect provider-managed state
+              → resolve bounded target paths
+                → compare file and provider records
+                  → emit FileChange and ProviderAction records
 
 The resolver does not read or write files directly. It receives observations and returns a deterministic result.
 
@@ -286,6 +414,21 @@ The resolver does not read or write files directly. It receives observations and
         harness: HarnessDescriptor,
         observed: ObservedHarnessState,
       ): Result<DesiredFile[]>
+    }
+
+    interface ProviderStateAdapter {
+      inspect(
+        assignment: Assignment,
+        plugin: CatalogPluginRecord,
+        harness: HarnessDescriptor,
+      ): Promise<Result<ProviderInstallationRecord>>
+
+      plan(
+        assignment: Assignment,
+        plugin: CatalogPluginRecord,
+        harness: HarnessDescriptor,
+        observed: ProviderInstallationRecord,
+      ): Result<ProviderAction[]>
     }
 
 ## Canonical package examples
@@ -305,7 +448,8 @@ The manifest declares both files as static artifacts, their SHA-256 hashes, and 
 
     source: git-repository
     externalId: community/review-plugin
-    sourceRevision: 8f2c...
+    requestedRevision: v1.4.0
+    resolvedRevision: 8f2c...
     version: 1.4.0
     license: declared MIT
     availability: available
@@ -322,16 +466,42 @@ The catalog record retains the Git revision and the external identifier. A later
 
 The fork keeps the original license and provenance, uses a new owned identity, and can be versioned in the user’s personal Git repository.
 
+### Fixture D: Cursor multi-plugin repository
+
+    cursor-plugins/
+      .cursor-plugin/
+        marketplace.json
+      pstack/
+        .cursor-plugin/
+          plugin.json
+        skills/
+          unslop/
+            SKILL.md
+        agents/
+        assets/
+
+The [Cursor repository catalogue](https://raw.githubusercontent.com/cursor/plugins/main/.cursor-plugin/marketplace.json)
+identifies `pstack` by its source path. The
+[per-plugin manifest](https://raw.githubusercontent.com/cursor/plugins/main/pstack/.cursor-plugin/plugin.json)
+declares the package metadata and component roots. The
+[`unslop` skill](https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/unslop/SKILL.md)
+is normalized as a
+`skill` artifact with `packageFormat: "cursor-plugin"` and
+`invocationPolicy: "user-only"`; its provider-specific frontmatter is retained. The
+other pstack components remain visible but are not materialized or executed by P0.
+
 ## Non-goals
 
-The manifest and harness contracts do not define:
+The manifest and harness contracts record these capabilities but do not define their
+provider-specific runtime implementation:
 
-- executable plugin hooks;
+- hook execution semantics and provider-specific hook APIs;
 - arbitrary shell commands;
 - automatic package installation;
 - automatic commits, pushes, merges, or rebases;
 - universal support for unknown harnesses;
 - structured configuration merging in P0;
+- provider-specific commands or APIs for host-managed installation and cache mutation;
 - an external marketplace publishing protocol;
 - cloud synchronization or recommendation logic.
 
@@ -339,11 +509,13 @@ The manifest and harness contracts do not define:
 
 The contract is intentionally precise about shape while leaving these product decisions open:
 
-1. The exact project and user roots for Codex, Claude Code, and OpenCode.
+1. The exact project and user roots for Codex, Claude Code, OpenCode, and Cursor.
 2. Whether structured configuration merging is needed after the copy-only vertical slice.
 3. Whether one plugin may expose multiple manifests or compatibility profiles.
-4. How a source adapter maps an external package with no manifest.
-5. The final public license and notice policy.
+4. How Agent Plugins and provider-native plugins should be represented when the host owns
+   their installation cache.
+5. How a source adapter maps an external package with no manifest.
+6. The final public license and notice policy.
 
 Each decision must be recorded before the implementation task that depends on it.
 
@@ -356,6 +528,11 @@ Before implementing the adapters, prepare:
 - unknown license and non-SemVer version cases;
 - a plugin with one unsupported harness;
 - a source adapter fixture that normalizes an external record without inventing metadata;
+- a Cursor marketplace fixture with `.cursor-plugin/marketplace.json`, a native
+  `.cursor-plugin/plugin.json`, and the `pstack/unslop` child skill;
+- an Agent Plugin fixture with a root `plugin.json` and `skills/` directory;
+- provider state fixtures covering a current cache, an outdated cache, a drifted cache,
+  and an inactive hook that requires explicit activation;
 - a personal fork fixture with preserved provenance and a changed content hash;
 - a harness fixture for each supported harness;
 - target collision, unmanaged file, drifted file, and stale observation cases;

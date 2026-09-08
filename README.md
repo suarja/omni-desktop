@@ -1,28 +1,49 @@
 # Omni Desktop
 
-Omni Desktop est une application desktop open source, local-first, destinée au développeur solo qui utilise plusieurs projets, marketplaces de skills/plugins et harnais d’agents.
+Omni Desktop is an open-source, local-first desktop application for a solo developer
+managing skills, plugins, marketplaces, projects, and agent harnesses.
 
-Le noyau du produit est déterministe : il catalogue les sources, calcule un état désiré, prévisualise les changements et synchronise les fichiers sans écraser silencieusement le travail local.
+The deterministic core catalogs sources, computes desired state, previews changes, and
+materializes approved files without silently overwriting local work.
 
-## Statut
+## Status
 
-Le repository est en phase de cadrage produit et de design. L’implémentation du desktop n’a pas commencé.
+The repository has a validated Electron bootstrap and a first usable desktop flow:
+read-only Cursor fixture ingestion, skill binding, plan preview, bounded local apply, backups,
+and drift detection are covered by automated tests. The renderer now exposes the local
+catalogue, plugin and skill views, a change-review drawer, and an explicit apply action.
+The repository itself is the first read-only dogfood target for the same project ports.
 
-Le premier périmètre cible macOS, avec Codex, Claude Code et OpenCode. Le cloud, l’inférence hébergée et les automatisations asynchrones sont des extensions SaaS ultérieures.
+The first target is macOS with Codex, Claude Code, OpenCode, and Cursor skill
+compatibility. Cloud sync, hosted inference, and asynchronous automation are later SaaS
+extensions.
 
-## Documentation de référence
+## Documentation
 
-- docs/product/2026-09-07-omni-desktop-open-saas-design.md — design produit validé ;
-- docs/planning/2026-09-08-omni-desktop-milestones-and-user-stories.md — backlog V1 et parcours vertical ;
-- docs/process/2026-09-08-orchestration-protocol.md — protocole de planification, délégation et revue ;
-- docs/research/2026-09-08-open-source-reference-notes.md — conventions observées dans OpenDesign et OpenCode.
+Start with the [documentation index](docs/README.md):
 
-Les planches de design seront ajoutées après validation du brief visuel.
+- [Product premise](docs/product/README.md)
+- [Harness conventions](docs/conventions/README.md)
+- [Architecture](docs/architecture/README.md)
+- [Milestones and user stories](docs/planning/2026-09-08-omni-desktop-milestones-and-user-stories.md)
+- [Orchestration protocol](docs/process/2026-09-08-orchestration-protocol.md)
+- [Open-source reference notes](docs/research/2026-09-08-open-source-reference-notes.md)
 
-## Développement
+Historical workshop documents are preserved under [docs/archive](docs/archive/).
 
-Le repository est indépendant d’OmniProject. Il pourra être référencé localement comme submodule par le repository parent, tout en conservant son propre historique, ses branches et ses pull requests.
+## Development
 
-## Licence
+This repository is independent from `OmniProject`. The parent repository may reference it
+as a submodule while this repository keeps its own history, branches, and pull requests.
 
-La licence open source finale reste à valider. Le choix doit être fait avant la première release publique contenant du code réutilisable.
+Run the structural checks from the repository root:
+
+```bash
+bash scripts/check-doc-structure.sh
+bash scripts/check-line-counts.sh
+```
+
+## License
+
+The final open-source license remains a product and legal decision. It must be selected
+before the first release containing reusable code.

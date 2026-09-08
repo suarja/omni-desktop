@@ -40,7 +40,29 @@ Run the repository check from the root:
 
     bash scripts/check-line-counts.sh
 
+## Documentation policy
+
+Current Markdown documentation targets 150 physical lines and has a hard limit of 200.
+Each documentation directory may contain at most five direct files, including
+`README.md`. Split by topic when a page grows beyond the target and update the directory
+index. Historical workshop documents are preserved under `docs/archive/` and are not
+extended as part of unrelated work.
+
+Run the documentation check from the repository root:
+
+    bash scripts/check-doc-structure.sh
+
 Do not solve a line-cap failure by hiding source code in generated output, weakening the check, or adding a broad exception. Split the responsibility into focused modules and tests.
+
+## Visual changes
+
+Read [the canonical UI reference](docs/design/canonical-ui-reference.md) before
+changing a UI surface. The board export at
+`docs/design/assets/form-boards/Omni Desktop - Planches.dc.html` is authoritative for
+visual direction. Compare the affected implementation with it before and after the
+change at the same viewport and theme. In the change report, mark the visual check
+`PASS`, `FAIL`, or `NOT RUN`, name the surfaces checked, and include the reason when it
+did not run or when an approved exception explains a difference.
 
 ## Naming and structure
 

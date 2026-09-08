@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body{margin:0}
+  button{font-family:inherit;cursor:pointer;transition:background .13s,border-color .13s}
+  ::-webkit-scrollbar{width:9px}
+  ::-webkit-scrollbar-thumb{background:rgba(130,128,124,.3);border-radius:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:flex-start;width:max-content;padding:34px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;background:{{c.deskBg}}">
+  <div style="width:1440px;min-width:1440px;flex-shrink:0;height:900px;border-radius:14px;overflow:hidden;position:relative;display:flex;background:{{c.bg}};box-shadow:0 0 0 .5px {{c.frame}},0 28px 70px rgba(0,0,0,.34)">
+
+    <div style="position:absolute;top:17px;left:18px;display:flex;gap:8px;z-index:5">
+      <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#febc2e"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#28c840"></div>
+    </div>
+
+    <div style="position:absolute;top:14px;right:18px;display:flex;gap:8px;align-items:center;z-index:5">
+      <div style="display:flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:999px;background:{{c.panel}};box-shadow:0 0 0 .5px {{c.hair}},0 1px 2px rgba(0,0,0,.05);font-size:12px;font-weight:500;color:{{c.textSub}};white-space:nowrap">
+        <div style="width:6px;height:6px;border-radius:50%;background:{{c.ok}}"></div>Local-first
+      </div>
+      <button onclick="{{toggleTheme}}" style="height:30px;padding:0 13px;border-radius:999px;border:none;background:{{c.panel}};box-shadow:0 0 0 .5px {{c.hair}},0 1px 2px rgba(0,0,0,.05);font-size:12px;font-weight:500;color:{{c.textSub}}">{{themeLabel}}</button>
+    </div>
+
+    <div style="width:216px;flex-shrink:0;background:{{c.sidebar}};display:flex;flex-direction:column;padding:52px 10px 14px;gap:4px">
+
+      <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 8px;border-radius:9px">
+        <div style="width:26px;height:26px;border-radius:50%;background:{{c.avatar}};color:{{c.avatarInk}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">O</div>
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:{{c.text}};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Espace local</div>
+        <div style="width:0;height:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid {{c.textFaint}}"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:9px;background:{{c.field}};margin:2px 0 8px">
+        <div style="width:11px;height:11px;border-radius:50%;border:1.5px solid {{c.textFaint}};flex-shrink:0"></div>
+        <div style="flex:1;font-size:12.5px;color:{{c.textFaint}}">Rechercher</div>
+        <div style="font-size:10.5px;font-weight:600;color:{{c.textFaint}};background:{{c.panel}};border-radius:5px;padding:2px 5px">⌘K</div>
+      </div>
+
+      <sc-for list="{{navTop}}" as="item" hint-placeholder-count="2">
+        <div onclick="{{item.onClick}}" style="{{item.rowStyle}}">
+          <div style="{{item.iconStyle}}"></div>
+          <div style="flex:1">{{item.label}}</div>
+        </div>
+      </sc-for>
+
+      <div style="height:1px;background:{{c.hair}};margin:9px 8px"></div>
+
+      <sc-for list="{{navMain}}" as="item" hint-placeholder-count="4">
+        <div onclick="{{item.onClick}}" style="{{item.rowStyle}}">
+          <div style="{{item.iconStyle}}"></div>
+          <div style="flex:1">{{item.label}}</div>
+          <sc-if value="{{item.soon}}" hint-placeholder-val="{{false}}">
+            <div style="font-size:10px;font-weight:600;color:{{c.textFaint}}">bientôt</div>
+          </sc-if>
+        </div>
+      </sc-for>
+
+      <div style="flex:1"></div>
+      <div style="padding:0 10px;font-size:10.5px;color:{{c.textFaint}}">v0.1.0 · open source · macOS</div>
+    </div>
+
+    <div style="flex:1;min-width:0;overflow:auto;padding:52px 46px 64px">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:26px">
+        <div>
+          <div style="font-size:24px;font-weight:600;letter-spacing:-.015em;color:{{c.text}}">{{header.title}}</div>
+          <div style="font-size:13.5px;line-height:1.5;color:{{c.textSub}};margin-top:7px;max-width:600px">{{header.desc}}</div>
+        </div>
+        <div style="display:flex;gap:2px;padding:3px;border-radius:999px;background:{{c.field}};flex-shrink:0">
+          <button onclick="{{header.setEmpty}}" style="{{header.emptyBtnStyle}}">État vide</button>
+          <button onclick="{{header.setPartial}}" style="{{header.partialBtnStyle}}">Partiellement configuré</button>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+
+        <sc-if value="{{overviewEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:86px 0 74px">
+            <div style="width:38px;height:38px;border-radius:10px;background:{{c.field}};box-shadow:0 0 0 .5px {{c.hair}}"></div>
+            <div style="font-size:16.5px;font-weight:600;color:{{c.text}};margin-top:18px">Rien à afficher pour l'instant</div>
+            <div style="font-size:13.5px;line-height:1.6;color:{{c.textSub}};margin-top:8px;max-width:410px">Ajoutez un projet local et connectez une marketplace. Le catalogue, les affectations et les fichiers installés apparaîtront ici.</div>
+            <div style="display:flex;gap:9px;margin-top:20px">
+              <button style="{{btnPrimary}}">Ajouter un projet</button>
+              <button style="{{btnGhost}}">Connecter une marketplace</button>
+            </div>
+          </div>
+          <div style="height:1px;background:{{c.hair}}"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:{{c.hair}}">
+            <sc-for list="{{mentalModel}}" as="m" hint-placeholder-count="3">
+              <div style="background:{{c.bg}};padding:22px 26px 24px">
+                <div style="font-size:11px;font-weight:600;color:{{c.textFaint}};font-family:ui-monospace,'SF Mono',Menlo,monospace">{{m.step}}</div>
+                <div style="font-size:14px;font-weight:600;color:{{c.text}};margin-top:8px">{{m.title}}</div>
+                <div style="font-size:12.5px;line-height:1.55;color:{{c.textSub}};margin-top:6px">{{m.desc}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="height:1px;background:{{c.hair}}"></div>
+        </sc-if>
+
+        <sc-if value="{{overviewPartial}}" hint-placeholder-val="{{true}}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{statusCards}}" as="s" hint-placeholder-count="4">
+              <div style="{{card}}padding:16px 18px 17px">
+                <div style="font-size:12.5px;color:{{c.textSub}}">{{s.label}}</div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-top:9px">
+                  <div style="font-size:25px;font-weight:600;letter-spacing:-.02em;color:{{c.text}}">{{s.value}}</div>
+                  <sc-if value="{{s.sub}}" hint-placeholder-val="{{false}}">
+                    <div style="{{s.subStyle}}">{{s.sub}}</div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="{{card}}padding:15px 18px;display:flex;align-items:center;gap:11px;margin-top:12px">
+            <div style="width:7px;height:7px;border-radius:50%;background:{{c.warn}};flex-shrink:0"></div>
+            <div style="flex:1;font-size:13px;color:{{c.text}}">Aucune marketplace connectée — aucun plugin ne peut être affecté à ce projet.</div>
+            <button style="{{btnGhostSm}}">Connecter une marketplace</button>
+          </div>
+
+          <div style="{{card}}margin-top:12px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid {{c.hair}}">
+              <div style="font-size:13px;font-weight:600;color:{{c.text}}">Projets surveillés</div>
+              <button style="{{btnGhostSm}}">Ajouter un projet</button>
+            </div>
+            <div style="padding:15px 18px;display:flex;align-items:center;gap:18px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:600;color:{{c.text}}">omni-desktop</div>
+                <div style="font-size:11.5px;color:{{c.textFaint}};font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-top:3px">~/Developer/omni-desktop</div>
+              </div>
+              <div style="display:flex;gap:14px">
+                <sc-for list="{{harnesses}}" as="h" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="{{h.dotStyle}}"></div>
+                    <div style="{{h.labelStyle}}">{{h.name}}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;color:{{c.textFaint}};width:150px;text-align:right">14 fichiers non gérés</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:9px;margin-top:14px;font-size:12.5px;color:{{c.textSub}}">
+            <div style="width:6px;height:6px;border-radius:50%;background:{{c.ok}}"></div>
+            Aucun changement en attente · dernier scan il y a 4 min
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- PROJECTS -->
+      <sc-if value="{{isProjects}}" hint-placeholder-val="{{false}}">
+        <sc-if value="{{projectsEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:96px 0">
+            <div style="width:38px;height:38px;border-radius:10px;background:{{c.field}};box-shadow:0 0 0 .5px {{c.hair}}"></div>
+            <div style="font-size:16.5px;font-weight:600;color:{{c.text}};margin-top:18px">Aucun projet surveillé</div>
+            <div style="font-size:13.5px;line-height:1.6;color:{{c.textSub}};margin-top:8px;max-width:420px">Omni effectue un scan en lecture seule pour détecter les harnais installés. Aucun fichier n'est modifié à cette étape.</div>
+            <button style="{{btnPrimary}}margin-top:20px">Sélectionner un dossier…</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{projectsPartial}}" hint-placeholder-val="{{true}}">
+          <div style="{{card}}padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+            <div>
+              <div style="font-size:15px;font-weight:600;color:{{c.text}}">omni-desktop</div>
+              <div style="font-size:11.5px;color:{{c.textFaint}};font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-top:4px">~/Developer/omni-desktop</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:{{c.textSub}}">
+              <div style="width:6px;height:6px;border-radius:50%;background:{{c.ok}}"></div>Scan en lecture seule terminé
+            </div>
+          </div>
+
+          <div style="{{card}}margin-top:12px;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid {{c.hair}};font-size:13px;font-weight:600;color:{{c.text}}">Harnais reconnus sur ce projet</div>
+            <sc-for list="{{harnesses}}" as="h" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:200px 130px 1fr;align-items:center;padding:14px 18px;border-bottom:1px solid {{c.hair}}">
+                <div style="font-size:13px;font-weight:500;color:{{c.text}}">{{h.name}}</div>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="{{h.dotStyle}}"></div>
+                  <div style="{{h.labelStyle}}">{{h.statusLabel}}</div>
+                </div>
+                <div style="font-size:12px;color:{{c.textFaint}};font-family:ui-monospace,'SF Mono',Menlo,monospace">{{h.note}}</div>
+              </div>
+            </sc-for>
+            <div style="padding:13px 18px;font-size:12px;color:{{c.textFaint}}">Omni n'inspecte que les emplacements déclarés par chaque adaptateur.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px">
+            <sc-for list="{{scanStats}}" as="s" hint-placeholder-count="3">
+              <div style="{{card}}padding:16px 18px 17px">
+                <div style="font-size:12.5px;color:{{c.textSub}}">{{s.label}}</div>
+                <div style="font-size:25px;font-weight:600;letter-spacing:-.02em;color:{{c.text}};margin-top:9px">{{s.value}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:18px">
+            <button style="{{btnDisabled}}" disabled="disabled">Continuer vers le catalogue</button>
+            <div style="font-size:12.5px;color:{{c.textFaint}}">Connectez une marketplace pour activer cette étape.</div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- MARKETPLACES -->
+      <sc-if value="{{isMarketplaces}}" hint-placeholder-val="{{false}}">
+        <sc-if value="{{marketplacesEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:92px 0">
+            <div style="width:38px;height:38px;border-radius:50%;background:{{c.field}};box-shadow:0 0 0 .5px {{c.hair}}"></div>
+            <div style="font-size:16.5px;font-weight:600;color:{{c.text}};margin-top:18px">Aucune marketplace connectée</div>
+            <div style="font-size:13.5px;line-height:1.6;color:{{c.textSub}};margin-top:8px;max-width:450px">Une marketplace personnelle vous appartient et reste modifiable. Une source externe est référencée en lecture seule : Omni ne la modifie jamais.</div>
+            <div style="display:flex;gap:9px;margin-top:20px">
+              <button style="{{btnPrimary}}">Marketplace personnelle</button>
+              <button style="{{btnGhost}}">Connecter une source externe</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{marketplacesPartial}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px">
+            <div style="display:flex;gap:6px">
+              <sc-for list="{{mpFilters}}" as="f" hint-placeholder-count="4">
+                <div style="{{f.style}}">{{f.label}}</div>
+              </sc-for>
+            </div>
+            <button style="{{btnPrimarySm}}">Ajouter une source</button>
+          </div>
+
+          <div style="{{card}}overflow:hidden">
+            <sc-for list="{{marketplaces}}" as="mp" hint-placeholder-count="3">
+              <div style="display:flex;align-items:flex-start;gap:14px;padding:18px 20px;border-bottom:1px solid {{c.hair}}">
+                <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:{{c.field}};box-shadow:0 0 0 .5px {{c.hair}}"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <div style="font-size:14px;font-weight:600;color:{{c.text}}">{{mp.name}}</div>
+                    <div style="{{mp.badgeStyle}}">{{mp.badge}}</div>
+                  </div>
+                  <div style="font-size:11.5px;color:{{c.textFaint}};font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-top:5px">{{mp.path}}</div>
+                  <div style="display:flex;gap:14px;font-size:12.5px;color:{{c.textSub}};margin-top:9px">
+                    <span>{{mp.pluginsLabel}}</span><span>·</span>
+                    <span>{{mp.sync}}</span>
+                    <sc-if value="{{mp.license}}" hint-placeholder-val="{{false}}"><span>·</span><span>{{mp.license}}</span></sc-if>
+                  </div>
+                  <sc-if value="{{mp.error}}" hint-placeholder-val="{{false}}">
+                    <div style="display:flex;align-items:center;gap:7px;margin-top:10px">
+                      <div style="width:6px;height:6px;border-radius:50%;background:{{c.bad}};flex-shrink:0"></div>
+                      <div style="font-size:12.5px;color:{{c.textSub}}">{{mp.error}}</div>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="display:flex;gap:7px;flex-shrink:0">
+                  <sc-for list="{{mp.actions}}" as="a" hint-placeholder-count="2">
+                    <button style="{{a.style}}">{{a.label}}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="padding:13px 20px;font-size:12px;color:{{c.textFaint}}">Les sources externes sont consommées en lecture seule. Omni ne publie ni ne modifie leur contenu.</div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;defaultScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;overview&quot;,&quot;options&quot;:[&quot;overview&quot;,&quot;projects&quot;,&quot;marketplaces&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const PALETTES = {
+  light: {
+    deskBg:'oklch(90% 0.004 85)', bg:'oklch(98.6% 0.002 85)', sidebar:'oklch(96.6% 0.003 85)',
+    panel:'oklch(100% 0 0)', field:'oklch(94.4% 0.004 85)', sel:'oklch(92.6% 0.005 85)',
+    hair:'oklch(90.5% 0.004 85)', frame:'rgba(0,0,0,.16)',
+    text:'oklch(24% 0.008 80)', textSub:'oklch(52% 0.007 80)', textFaint:'oklch(49% 0.007 80)',
+    ink:'oklch(22% 0.008 80)', inkText:'oklch(99% 0 0)',
+    avatar:'oklch(88% 0.006 85)', avatarInk:'oklch(35% 0.008 80)',
+    ok:'oklch(60% 0.13 150)', warn:'oklch(70% 0.14 70)', bad:'oklch(56% 0.18 27)'
+  },
+  dark: {
+    deskBg:'oklch(13% 0.004 260)', bg:'oklch(19.5% 0.005 260)', sidebar:'oklch(17% 0.005 260)',
+    panel:'oklch(22.5% 0.005 260)', field:'oklch(24.5% 0.006 260)', sel:'oklch(28% 0.007 260)',
+    hair:'oklch(27% 0.006 260)', frame:'rgba(255,255,255,.10)',
+    text:'oklch(95% 0.002 85)', textSub:'oklch(72% 0.005 260)', textFaint:'oklch(71% 0.006 260)',
+    ink:'oklch(94% 0.002 85)', inkText:'oklch(18% 0.006 260)',
+    avatar:'oklch(32% 0.008 260)', avatarInk:'oklch(88% 0.003 85)',
+    ok:'oklch(70% 0.13 150)', warn:'oklch(78% 0.13 75)', bad:'oklch(66% 0.16 27)'
+  }
+};
+
+class Component extends DCLogic {
+  state = { theme: null, screen: null, sub: { overview: 'partial', projects: 'partial', marketplaces: 'partial' } };
+
+  renderVals() {
+    const theme = this.state.theme || this.props.theme || 'light';
+    const screen = this.state.screen || this.props.defaultScreen || 'overview';
+    const c = PALETTES[theme];
+    const sub = this.state.sub;
+    const setScreen = (s) => () => this.setState({ screen: s });
+    const setSub = (key, val) => () => this.setState(s => ({ sub: { ...s.sub, [key]: val } }));
+    const toggleTheme = () => this.setState(s => ({ theme: (s.theme || this.props.theme || 'light') === 'light' ? 'dark' : 'light' }));
+
+    const glyphs = {
+      square: (col) => `width:13px;height:13px;border-radius:3.5px;border:1.4px solid ${col};flex-shrink:0`,
+      circle: (col) => `width:13px;height:13px;border-radius:50%;border:1.4px solid ${col};flex-shrink:0`,
+      diamond: (col) => `width:10px;height:10px;border-radius:2px;border:1.4px solid ${col};transform:rotate(45deg);margin:1.5px;flex-shrink:0`,
+      dot: (col) => `width:13px;height:13px;border-radius:3.5px;background:${col};opacity:.5;flex-shrink:0`,
+      bar: (col) => `width:13px;height:13px;border-radius:3.5px;border:1.4px solid ${col};border-left-width:4px;flex-shrink:0`,
+    };
+
+    const mk = (key, label, glyph, soon) => {
+      const active = screen === key;
+      const col = active ? c.text : c.textFaint;
+      return {
+        label, soon,
+        onClick: soon ? undefined : setScreen(key),
+        rowStyle: `display:flex;align-items:center;gap:10px;height:33px;padding:0 10px;border-radius:8px;font-size:13px;font-weight:${active ? 600 : 500};color:${active ? c.text : soon ? c.textFaint : c.textSub};background:${active ? c.sel : 'transparent'};cursor:${soon ? 'default' : 'pointer'}`,
+        iconStyle: glyphs[glyph](col),
+      };
+    };
+    const navTop = [mk('overview', 'Overview', 'square'), mk('marketplaces', 'Marketplaces', 'circle')];
+    const navMain = [mk('plugins', 'Plugins & Skills', 'diamond', true), mk('projects', 'Projects', 'bar'), mk('changes', 'Changes / Activity', 'dot', true), mk('settings', 'Settings', 'circle', true)];
+
+    const nw = 'white-space:nowrap;';
+    const btnPrimary = nw + `height:36px;padding:0 17px;border-radius:999px;border:none;font-size:13px;font-weight:500;background:${c.ink};color:${c.inkText};`;
+    const btnPrimarySm = nw + `height:31px;padding:0 14px;border-radius:999px;border:none;font-size:12.5px;font-weight:500;background:${c.ink};color:${c.inkText};`;
+    const btnGhost = nw + `height:36px;padding:0 17px;border-radius:999px;border:none;box-shadow:0 0 0 .5px ${c.hair};font-size:13px;font-weight:500;background:${c.panel};color:${c.text};`;
+    const btnGhostSm = nw + `height:29px;padding:0 13px;border-radius:999px;border:none;box-shadow:0 0 0 .5px ${c.hair};font-size:12.5px;font-weight:500;background:${c.panel};color:${c.text};flex-shrink:0;`;
+    const btnDisabled = nw + `height:36px;padding:0 17px;border-radius:999px;border:none;font-size:13px;font-weight:500;background:${c.field};color:${c.textFaint};cursor:not-allowed;`;
+    const card = `background:${c.panel};border-radius:12px;box-shadow:0 0 0 .5px ${c.hair},0 1px 2px rgba(0,0,0,.04);`;
+    const segBtn = (active) => nw + `height:30px;padding:0 15px;border-radius:999px;border:none;font-size:12.5px;font-weight:500;background:${active ? c.panel : 'transparent'};color:${active ? c.text : c.textSub};box-shadow:${active ? '0 0 0 .5px ' + c.hair + ',0 1px 2px rgba(0,0,0,.06)' : 'none'};`;
+
+    const headers = {
+      overview: { title: 'Overview', desc: 'Ce qui est actif, où, et ce qui mérite d\u2019être examiné avant toute écriture.' },
+      projects: { title: 'Projects', desc: 'Ajouter une codebase locale et vérifier quels harnais Omni reconnaît.' },
+      marketplaces: { title: 'Marketplaces', desc: 'Connecter des sources et distinguer marketplace personnelle, source externe et copie personnelle.' },
+    };
+    const isEmpty = sub[screen] === 'empty';
+    const header = {
+      ...headers[screen],
+      setEmpty: setSub(screen, 'empty'), setPartial: setSub(screen, 'partial'),
+      emptyBtnStyle: segBtn(isEmpty), partialBtnStyle: segBtn(!isEmpty),
+    };
+
+    const harnesses = [
+      { name: 'Codex', state: 'ok', statusLabel: 'Détecté', note: '~/.codex/skills' },
+      { name: 'Claude Code', state: 'ok', statusLabel: 'Détecté', note: '.claude/skills' },
+      { name: 'OpenCode', state: 'off', statusLabel: 'Non détecté', note: 'aucun emplacement reconnu' },
+    ].map(h => ({
+      ...h,
+      dotStyle: `width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${h.state === 'ok' ? c.ok : c.textFaint}`,
+      labelStyle: `font-size:12.5px;color:${h.state === 'ok' ? c.textSub : c.textFaint}`,
+    }));
+
+    const statusCards = [
+      { label: 'Projets surveillés', value: '1' },
+      { label: 'Sources connectées', value: '0', sub: 'à connecter', subStyle: `font-size:12px;white-space:nowrap;color:${c.warn}` },
+      { label: 'Harnais détectés', value: '2 / 3' },
+      { label: 'Changements en attente', value: '0' },
+    ];
+    const scanStats = [
+      { label: 'Fichiers gérés par Omni', value: '0' },
+      { label: 'Fichiers inconnus', value: '14' },
+      { label: 'Dérive détectée', value: 'Non' },
+    ];
+    const mentalModel = [
+      { step: '01', title: 'Catalogue', desc: 'Ce qui est disponible dans les sources connectées.' },
+      { step: '02', title: 'État désiré', desc: 'Ce que vous décidez d\u2019activer, par projet et par harnais.' },
+      { step: '03', title: 'État matérialisé', desc: 'Ce qui existe réellement sur le disque, vérifié par hash.' },
+    ];
+
+    const mpFilters = ['Toutes', 'Personnelles', 'Externes', 'Indisponibles'].map((label, i) => ({
+      label, style: `height:30px;padding:0 14px;display:flex;align-items:center;border-radius:999px;font-size:12.5px;font-weight:500;background:${i === 0 ? c.ink : c.panel};color:${i === 0 ? c.inkText : c.textSub};box-shadow:${i === 0 ? 'none' : '0 0 0 .5px ' + c.hair};`
+    }));
+
+    const act = (label) => ({ label, style: btnGhostSm });
+    const marketplaces = [
+      { name: 'Skills perso', badge: 'Personnelle', path: '~/omni/marketplace-perso', pluginsLabel: '12 plugins', sync: 'actualisé à l\u2019instant', license: null, error: null, actions: [act('Actualiser'), act('Examiner')] },
+      { name: 'community-skills', badge: 'Externe · lecture seule', path: 'github.com/…/community-skills', pluginsLabel: '34 plugins', sync: 'actualisé il y a 2 h', license: 'MIT', error: null, actions: [act('Actualiser'), act('Importer une copie')] },
+      { name: 'agent-toolbox', badge: 'Indisponible', path: 'github.com/…/agent-toolbox', pluginsLabel: 'catalogue en cache', sync: 'échec il y a 20 min', license: 'Apache-2.0', error: 'Dépôt injoignable. La dernière copie locale du catalogue est conservée, rien n\u2019a été modifié.', actions: [act('Réessayer'), act('Retirer')] },
+    ].map(mp => ({
+      ...mp,
+      badgeStyle: `font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;color:${mp.error ? c.bad : c.textSub};box-shadow:0 0 0 .5px ${mp.error ? c.bad : c.hair};`,
+    }));
+
+    return {
+      c, theme, themeLabel: theme === 'light' ? 'Clair' : 'Sombre', toggleTheme,
+      navTop, navMain, header,
+      isOverview: screen === 'overview', isProjects: screen === 'projects', isMarketplaces: screen === 'marketplaces',
+      overviewEmpty: screen === 'overview' && isEmpty, overviewPartial: screen === 'overview' && !isEmpty,
+      projectsEmpty: screen === 'projects' && isEmpty, projectsPartial: screen === 'projects' && !isEmpty,
+      marketplacesEmpty: screen === 'marketplaces' && isEmpty, marketplacesPartial: screen === 'marketplaces' && !isEmpty,
+      btnPrimary, btnPrimarySm, btnGhost, btnGhostSm, btnDisabled, card,
+      harnesses, statusCards, scanStats, mentalModel, mpFilters, marketplaces,
+    };
+  }
+}
+</script>
+</body>
+</html>
