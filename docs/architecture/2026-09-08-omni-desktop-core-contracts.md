@@ -12,6 +12,8 @@ It does not choose the final Electron toolkit, persistence library, visual compo
 
 The contract notation is TypeScript-like pseudocode. It describes ownership and behavior, not implementation-ready code.
 
+The canonical plugin and harness shape is specified in the companion document, Plugin Manifest and Harness Contract.
+
 ## Caller use
 
 The main caller is the desktop application:
@@ -515,7 +517,7 @@ Recommended. It gives one place for idempotency, ownership, hashes, previews, ro
 
 These are intentionally not hidden inside the contract:
 
-1. The canonical plugin manifest format and versioning rules.
+1. Approval of the canonical plugin manifest and versioning rules defined in the companion contract.
 2. The exact filesystem locations and ownership markers for each harness.
 3. The local persistence implementation.
 4. The backup retention policy.
