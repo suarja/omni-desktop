@@ -277,6 +277,7 @@ Adapter rules:
 - refresh returns a deterministic ordering and a stable revision;
 - malformed records are reported as warnings or rejected according to the source contract;
 - an adapter cannot expose a write method in the P0 read contract;
+- Git-backed sources delegate fetch and revision handling to the Git port;
 - external source failures never erase the last known valid snapshot.
 
 ### Harness adapter
@@ -331,6 +332,66 @@ Adapter rules:
     }
 
 The persistence technology is intentionally behind these ports. SQLite, a structured local file store, or another local implementation must not change domain behavior.
+
+## Git boundary
+
+Git is a transport and versioning layer, not the source of truth for Omni’s installed state.
+
+The product has four distinct Git use cases:
+
+1. Read a Git-backed marketplace and pin it to a resolved revision.
+2. Detect a new remote revision and expose it as a pending catalog update.
+3. Version a personal marketplace or imported fork through explicit user actions.
+4. Show the Git diff created by Omni in a project without taking ownership of the project’s commit workflow.
+
+### P0 Git read contract
+
+    interface GitRepositoryPort {
+      inspect(locator: GitLocator): Promise<Result<GitRepositoryState>>
+
+      fetchRevision(
+        locator: GitLocator,
+      ): Promise<Result<GitRevision>>
+
+      checkoutSnapshot(
+        locator: GitLocator,
+        revision: string,
+      ): Promise<Result<ReadOnlySnapshot>>
+
+      diff(
+        locator: GitLocator,
+      ): Promise<Result<GitDiff>>
+    }
+
+The P0 Git port may fetch, inspect, and read a revision. It must not commit, push, merge, rebase, or rewrite a user branch.
+
+The source adapter records the resolved revision in CatalogSnapshot. A remote change creates a new snapshot candidate and a pending update; it does not silently modify an assignment or installed file.
+
+### Dirty working trees
+
+A Git-backed source with uncommitted changes is represented as a distinct local state. Omni must not label that content as a clean remote revision.
+
+The UI must make clear whether a catalog came from:
+
+- a clean pinned revision;
+- a local working tree with uncommitted changes;
+- an unavailable or partially fetched repository.
+
+The reconciler may plan against a local working tree only when the user explicitly selects it. The plan records the working-tree state and becomes stale if that state changes.
+
+### Explicit Git writes after P0
+
+Personal marketplace and fork workflows may later expose an explicit write port:
+
+    interface GitWritePort {
+      stage(paths: RelativePath[]): Promise<Result<GitIndexState>>
+      commit(message: string): Promise<Result<GitCommit>>
+      push(remote: string, branch: string): Promise<Result<GitPushReceipt>>
+    }
+
+These operations require a separate user action and confirmation. They are not part of the deterministic file reconciler and are not triggered by refresh, install, update, or remove.
+
+Project Git repositories remain user-controlled in P0. Omni may inspect status and show its diff, but it does not stage, commit, push, merge, or rebase on the user’s behalf.
 
 ### Filesystem executor
 
@@ -472,7 +533,9 @@ Before implementation begins, the contract must be checked with:
 - one source fixture containing a valid plugin, a malformed plugin, and an unavailable source;
 - one project fixture per supported harness;
 - a golden plan for add, update, drift, conflict, remove-one-project, and remove-everywhere;
+- a Git source fixture with a pinned revision, a newer remote revision, and a dirty working tree;
 - idempotency tests that run the same plan twice;
 - safety tests proving that unmanaged and locally modified files are not removed;
 - a stale-plan test proving that changed hashes force re-planning;
+- a project Git fixture proving that Omni reports its diff without staging or committing it;
 - the repository line-count check.
