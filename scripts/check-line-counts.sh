@@ -13,7 +13,7 @@ failure_count=0
 
 while IFS= read -r file; do
   case "$file" in
-    .git/*|node_modules/*|dist/*|build/*|coverage/*|vendor/*|generated/*|*/generated/*)
+    .git/*|node_modules/*|dist/*|build/*|coverage/*|vendor/*|generated/*|*/generated/*|docs/design/assets/*)
       continue
       ;;
     *.generated.*|*.gen.*|*.lock|package-lock.json|pnpm-lock.yaml|yarn.lock|bun.lockb)
