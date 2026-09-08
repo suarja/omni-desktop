@@ -1,0 +1,30 @@
+{
+  "name": "omni-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first desktop tool for managing developer context.",
+  "main": "out/main/index.js",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build && bash scripts/check-preload-bundle.sh",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check:size": "bash scripts/check-line-counts.sh && find src tests -type f \\( -name '*.ts' -o -name '*.tsx' \\) -exec sh -c 'for file do lines=$(wc -l < \"$file\"); if [ \"$lines\" -gt 500 ]; then printf \"FAIL: %s has %s physical lines;\\n\" \"$file\" \"$lines\"; exit 1; fi; done' sh {} +"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^36.0.0",
+    "electron-vite": "^3.1.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "cursor-official",
+  "plugins": [
+    {
+      "name": "pstack",
+      "source": "./pstack"
+    }
+  ]
+}
